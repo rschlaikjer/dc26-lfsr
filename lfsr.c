@@ -217,8 +217,9 @@ uint8_t is_printable_chr(uint8_t c) {
         return 1;
 
     // The only things below space that _might_ be ok are CR/LF
-    if (c == '\r' || c == '\n')
-        return 1;
+    // Skip em
+    // if (c == '\r' || c == '\n')
+    //     return 1;
 
     return 0;
 }
