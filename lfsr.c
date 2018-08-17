@@ -14,9 +14,11 @@
 #if BIT_SIZE == 64
 typedef uint64_t lfsr_reg;
 const lfsr_reg lfsr_max = 0xFFFFFFFFFFFFFFFF;
+#define REG_FMT "0x%016lx"
 #elif BIT_SIZE == 8
 typedef uint8_t lfsr_reg;
 const lfsr_reg lfsr_max = 0xFF;
+#define REG_FMT "0x%02x"
 #else
 #error "BIT_SIZE must be set to 8 or 64"
 #endif // BIT_SIZE
@@ -91,7 +93,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
     for (size_t i = 0; i < input_len; i++) {
         fprintf(stderr, "%02x", input[i]);
     }
-    fprintf(stderr, "\nStarting register value: 0x%016lx\n", initial_value);
+    fprintf(stderr, "\nStarting register value: " REG_FMT "\n", initial_value);
     fprintf(stderr, "Worker thread count: %ld\n", cpu_count);
 
     // Spawn a worker thread for each core, partitioning the search space
@@ -120,7 +122,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
     struct timespec now;
     for (;;) {
         // Gather stats from the threads
-        size_t taps_checked = 0;
+        lfsr_reg taps_checked = 0;
         uint8_t all_workers_done = 1;
         for (long i = 0; i < cpu_count; i++) {
             taps_checked += thread_state[i]->taps_checked;
@@ -139,7 +141,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         const time_t hours_remaining = (seconds_remaining / 3600);
         fprintf(
             stderr,
-            "Test progress: %016lx/%016lx (%.1f%%); Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
+            "Test progress: " REG_FMT "/" REG_FMT " (%.1f%%); Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
             taps_checked, lfsr_max,
             percent_complete,
             hours_elapsed, minutes_elapsed,
@@ -173,7 +175,7 @@ void *bruteforce_worker(void *args_v) {
     do {
         if (decrypt(args->input, args->input_len, output, initial_state, taps)) {
         // if (is_printable_str(output, args->input_len + 1)) {
-            fprintf(stderr, "\nTap config 0x%0lx: %s\n", taps, output);
+            fprintf(stderr, "\nTap config " REG_FMT ": %s\n", taps, output);
         }
         taps++;
         args->taps_checked++;
