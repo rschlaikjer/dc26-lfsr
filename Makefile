@@ -1,4 +1,4 @@
-FLAGS = -g -Wall -Wextra -O3
+FLAGS = -g -Wall -Wextra -O3 -march=native
 LDFLAGS = -lpthread
 
 all: compile
