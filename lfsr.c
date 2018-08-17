@@ -5,8 +5,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#define USE_POPCNT
+
 // Set 8 or 64 bit mode
-#define BIT_SIZE 8
+#define BIT_SIZE 64
 
 #if BIT_SIZE == 64
 typedef uint64_t lfsr_reg;
@@ -57,6 +59,7 @@ const uint8_t crypt_lfsr_64[] = {
 };
 
 int main() {
+    fprintf(stderr, "Running in %d-bit mode\n", BIT_SIZE);
     // uint8_t dest[32];
     // decrypt_8(crypt_lfsr_8, crypt_lfsr_8_len, dest, 0x42, taps_8);
     // fprintf(stderr, "Out: %s\n", dest);
@@ -154,7 +157,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         }
 
         // Sleep between printouts
-        sleep(10);
+        sleep(1);
     }
 
     // Await termination of all workers
@@ -255,6 +258,11 @@ static void shift(lfsr_reg *reg, lfsr_reg taps) {
 }
 
 static uint8_t xor_taps(lfsr_reg reg, lfsr_reg taps) {
+#ifdef USE_POPCNT
+    const uint8_t popcnt_taps = __builtin_popcountll(taps);
+    const uint8_t popcnt_taps_reg = __builtin_popcountll(taps & reg);
+    return (popcnt_taps - popcnt_taps_reg) % 2;
+#else // USE_POPCNT
     uint8_t state = 0;
     for (int i = 0; i < BIT_SIZE && taps; i++) {
         if (0x1 & taps) {
@@ -264,4 +272,5 @@ static uint8_t xor_taps(lfsr_reg reg, lfsr_reg taps) {
         taps = taps >> 1;
     }
     return state;
+#endif
 }
