@@ -34,7 +34,6 @@ struct bruteforce_thread_args {
     uint8_t thread_done;
 };
 
-uint8_t is_printable_str(uint8_t *s, size_t len);
 uint8_t is_printable_chr(uint8_t c);
 
 void bruteforce(const uint8_t *input, size_t input_len);
@@ -185,7 +184,6 @@ void *bruteforce_worker(void *args_v) {
     uint8_t output[args->input_len + 1];
     do {
         if (decrypt(args->input, args->input_len, output, initial_state, taps)) {
-        // if (is_printable_str(output, args->input_len + 1)) {
             fprintf(stderr, "\nTap config " REG_FMT ": %s\n", taps, output);
         }
         taps++;
@@ -195,22 +193,13 @@ void *bruteforce_worker(void *args_v) {
     return NULL;
 }
 
-uint8_t is_printable_str(uint8_t* text, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        if (!is_printable_chr(text[i])) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
 uint8_t is_printable_chr(uint8_t c) {
     // Anything higher than space, but still 7 bit, probably good
     if (c >= ' ' && c < 0x80)
         return 1;
 
     // The only things below space that _might_ be ok are CR/LF
-    if (c == '\r' || c == '\n' || c == 0)
+    if (c == '\r' || c == '\n')
         return 1;
 
     return 0;
