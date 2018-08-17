@@ -229,13 +229,13 @@ uint8_t decrypt(const uint8_t *source, size_t source_len, uint8_t *dest,
     uint8_t ret = 1;
 
     for (size_t by = 0; by < source_len; by++) {
-        lfsr_reg test = ((lfsr_reg) 1) << (BIT_SIZE - 1);
-        for (uint8_t bi = 0; bi < BIT_SIZE; bi++) {
+        lfsr_reg test = ((lfsr_reg) 1) << 7;
+        for (uint8_t bi = 0; bi < 8; bi++) {
             // Shift
             shift(&reg, taps);
 
             // Start at the high bit (all ops MSBfirst here)
-            const lfsr_reg offset = (BIT_SIZE - 1) - bi;
+            const lfsr_reg offset = 7 - bi;
 
             // Get the MSB of the shift register state
             const lfsr_reg reg_xor_bit = (reg & ((lfsr_reg ) 1 << (BIT_SIZE - 1))) >> (BIT_SIZE - 1);
