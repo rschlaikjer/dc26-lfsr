@@ -248,8 +248,8 @@ uint8_t decrypt_64(const uint8_t *source, size_t source_len, uint8_t *dest,
     // Return value - 1 if string is printable
     uint8_t ret = 1;
 
-    for (int by = 0; by < source_len; by++) {
-        for (int bi = 0; bi < 64; bi++) {
+    for (size_t by = 0; by < source_len; by++) {
+        for (uint8_t bi = 0; bi < 64; bi++) {
             // Shift
             shift_64(&reg, taps);
 
@@ -286,8 +286,8 @@ void decrypt_8(const uint8_t *source, size_t source_len, uint8_t *dest,
     // Extra byte for null terminator
     memset(dest, 0x0, source_len + 1);
 
-    for (int by = 0; by < source_len; by++) {
-        for (int bi = 0; bi < 8; bi++) {
+    for (size_t by = 0; by < source_len; by++) {
+        for (uint8_t bi = 0; bi < 8; bi++) {
             // Shift
             shift_8(&reg, taps);
             // Start at the high bit (all ops MSBfirst here)
