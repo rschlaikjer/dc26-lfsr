@@ -127,7 +127,7 @@ void bruteforce_64_parallel(const uint8_t *input, size_t input_len, uint64_t ini
 
         clock_gettime(CLOCK_MONOTONIC, &now);
         const time_t seconds_elapsed = now.tv_sec - start_time.tv_sec;
-        const time_t minutes_elapsed = seconds_elapsed / 60;
+        const time_t minutes_elapsed = (seconds_elapsed / 60) % 60;
         const time_t hours_elapsed  = minutes_elapsed / 60;
 
         const double percent_complete = ((((double) taps_checked) * 100) / ((double) 0xFFFFFFFFFFFFFFFF));
