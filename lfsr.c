@@ -60,14 +60,7 @@ const uint8_t crypt_lfsr_64[] = {
 
 int main() {
     fprintf(stderr, "Running in %d-bit mode\n", BIT_SIZE);
-    // uint8_t dest[32];
-    // decrypt_8(crypt_lfsr_8, crypt_lfsr_8_len, dest, 0x42, taps_8);
-    // fprintf(stderr, "Out: %s\n", dest);
-    // bruteforce_8(crypt_lfsr_8, crypt_lfsr_8_len);
-    // bruteforce_64(crypt_lfsr_64, crypt_lfsr_64_len);
 
-    // const uint64_t initial_state = 0x8000000000000000;
-    // const uint64_t initial_state = 0x0000000000000080;
 #if BIT_SIZE == 64
     lfsr_reg initial_state = 0x8080808080808080;
     bruteforce_parallel(crypt_lfsr_64, crypt_lfsr_64_len, initial_state);
