@@ -12,6 +12,14 @@
 #define BIT_SIZE 64
 #endif
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 #if BIT_SIZE == 64
 typedef uint64_t lfsr_reg;
 const lfsr_reg lfsr_max = 0xFFFFFFFFFFFFFFFF;
@@ -148,8 +156,12 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         );
         fprintf(
             stderr,
-            "" REG_FMT "/" REG_FMT " (%.1f%%); "
-            "%'lu kOps/sec; "
+            ANSI_COLOR_YELLOW
+            "" REG_FMT "/" REG_FMT
+            ANSI_COLOR_RESET
+            " (" ANSI_COLOR_CYAN "%.1f%%" ANSI_COLOR_RESET "); "
+            ANSI_COLOR_GREEN
+            "%'lu " ANSI_COLOR_RESET "kOps/sec; "
             "Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
             taps_checked, lfsr_max,
             percent_complete,
@@ -184,7 +196,13 @@ void *bruteforce_worker(void *args_v) {
     uint8_t output[args->input_len + 1];
     do {
         if (decrypt(args->input, args->input_len, output, initial_state, taps)) {
-            fprintf(stderr, "\nTap config " REG_FMT ": %s\n", taps, output);
+            fprintf(stderr,
+                "Tap config "
+                ANSI_COLOR_CYAN REG_FMT ANSI_COLOR_RESET ": "
+                ANSI_COLOR_GREEN
+                "%s" ANSI_COLOR_RESET
+                "                "
+                "\n", taps, output);
         }
         taps++;
         args->taps_checked++;
