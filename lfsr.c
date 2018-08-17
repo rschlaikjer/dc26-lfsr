@@ -7,16 +7,19 @@
 
 #define USE_POPCNT
 
-// Set 8 or 64 bit mode
+#ifndef BIT_SIZE
 #define BIT_SIZE 64
+#endif
 
 #if BIT_SIZE == 64
 typedef uint64_t lfsr_reg;
 const lfsr_reg lfsr_max = 0xFFFFFFFFFFFFFFFF;
-#else  // BIT_SIZE != 64
+#elif BIT_SIZE == 8
 typedef uint8_t lfsr_reg;
 const lfsr_reg lfsr_max = 0xFF;
-#endif // BIT_SIZE == 64
+#else
+#error "BIT_SIZE must be set to 8 or 64"
+#endif // BIT_SIZE
 
 struct bruteforce_thread_args {
     const uint8_t *input;

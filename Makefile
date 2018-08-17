@@ -1,8 +1,16 @@
 FLAGS = -g -Wall -Wextra -O3
 LDFLAGS = -lpthread
 
-all:
+all: compile
+
+compile:
 	gcc $(FLAGS) $(LDFLAGS) lfsr.c -o lfsr
+
+8bit: FLAGS+=-D BIT_SIZE=8
+8bit: compile
+
+64bit: FLAGS+=-D BIT_SIZE=64
+64bit: compile
 
 clean:
 	rm lfsr
