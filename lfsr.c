@@ -8,6 +8,11 @@
 
 #define USE_POPCNT
 
+// Whether to assume that the tap configuration is such that the LFSR
+// is maximal-length. In order for it to be optimal, the number of taps
+// MUST be even, cutting down our search space.
+#define ASSUME_MAXIMAL_LENGTH_TAPS
+
 #ifndef BIT_SIZE
 #define BIT_SIZE 64
 #endif
@@ -226,6 +231,15 @@ uint8_t is_printable_chr(uint8_t c) {
 
 uint8_t decrypt(const uint8_t *source, size_t source_len, uint8_t *dest,
                 lfsr_reg initial, lfsr_reg taps) {
+
+#ifdef ASSUME_MAXIMAL_LENGTH_TAPS
+    // If we're assuming the taps are optimal, then don't bother to check a tap
+    // setting with an odd number of tap bits.
+    const uint8_t popcnt_taps = __builtin_popcountll(taps);
+    if (popcnt_taps & 1)
+        return 0;
+#endif
+
     // Shift register state
     lfsr_reg reg = initial;
 
@@ -285,7 +299,7 @@ static uint8_t xor_taps(lfsr_reg reg, lfsr_reg taps) {
 #ifdef USE_POPCNT
     const uint8_t popcnt_taps = __builtin_popcountll(taps);
     const uint8_t popcnt_taps_reg = __builtin_popcountll(taps & reg);
-    return (popcnt_taps - popcnt_taps_reg) % 2;
+    return (popcnt_taps - popcnt_taps_reg) & 1;
 #else // USE_POPCNT
     uint8_t state = 0;
     for (int i = 0; i < BIT_SIZE && taps; i++) {
