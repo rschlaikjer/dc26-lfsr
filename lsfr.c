@@ -7,7 +7,7 @@
 
 struct bruteforce_thread_args {
     const uint8_t *input;
-    ssize_t input_len;
+    size_t input_len;
     uint64_t initial_value;
     uint64_t start_taps;
     uint64_t end_taps;
@@ -15,19 +15,19 @@ struct bruteforce_thread_args {
     uint8_t thread_done;
 };
 
-uint8_t is_printable_str(uint8_t *s, ssize_t len);
+uint8_t is_printable_str(uint8_t *s, size_t len);
 uint8_t is_printable_chr(uint8_t c);
 
-void bruteforce_8(const uint8_t *input, ssize_t input_len);
-void bruteforce_64(const uint8_t *input, ssize_t input_len);
+void bruteforce_8(const uint8_t *input, size_t input_len);
+void bruteforce_64(const uint8_t *input, size_t input_len);
 
-void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t initial_value);
+void bruteforce_64_parallel(const uint8_t *input, size_t input_len, uint64_t initial_value);
 void *bruteforce_64_worker(void *args_v);
 
-void decrypt_8(const uint8_t *source, ssize_t source_len, uint8_t *dest,
+void decrypt_8(const uint8_t *source, size_t source_len, uint8_t *dest,
                uint8_t initial, uint8_t taps);
 
-uint8_t decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
+uint8_t decrypt_64(const uint8_t *source, size_t source_len, uint8_t *dest,
                    uint64_t initial, uint64_t taps);
 
 static inline void shift_8(uint8_t *reg, uint8_t taps);
@@ -44,7 +44,7 @@ const uint8_t crypt_lfsr_8[] = {
     0x47, 0xDA, 0x0E, 0xC6, 0x75, 0x30, 0xD3
 };
 
-const ssize_t crypt_lfsr_64_len = 23;
+const size_t crypt_lfsr_64_len = 23;
 const uint8_t crypt_lfsr_64[] = {
     0x9E, 0x1C, 0xE2, 0xC2, 0xF6, 0xFB, 0xFE, 0x19,
     0x86, 0x37, 0xE6, 0xF1, 0x0B, 0x95, 0x7D, 0xDD,
@@ -71,7 +71,7 @@ int main() {
     bruteforce_64_parallel(crypt_lfsr_64, crypt_lfsr_64_len, initial_state);
 }
 
-void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t initial_value) {
+void bruteforce_64_parallel(const uint8_t *input, size_t input_len, uint64_t initial_value) {
     // Get the CPU count
     const long cpu_count = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -86,7 +86,7 @@ void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t in
 
     // Print some details
     fprintf(stderr, "Input ciphertext: ");
-    for (ssize_t i = 0; i < input_len; i++) {
+    for (size_t i = 0; i < input_len; i++) {
         fprintf(stderr, "%02x", input[i]);
     }
     fprintf(stderr, "\nStarting register value: 0x%016lx\n", initial_value);
@@ -162,7 +162,7 @@ void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t in
     }
 }
 
-void bruteforce_8(const uint8_t *input, ssize_t input_len) {
+void bruteforce_8(const uint8_t *input, size_t input_len) {
     uint8_t taps = 0;
     uint8_t output[input_len + 1];
     do {
@@ -192,7 +192,7 @@ void *bruteforce_64_worker(void *args_v) {
     return NULL;
 }
 
-void bruteforce_64(const uint8_t *input, ssize_t input_len) {
+void bruteforce_64(const uint8_t *input, size_t input_len) {
     uint64_t taps = 0;
     // const uint64_t initial_state = 0x8000000000000000;
     // const uint64_t initial_state = 0x0000000000000080;
@@ -215,8 +215,8 @@ void bruteforce_64(const uint8_t *input, ssize_t input_len) {
     } while (taps > 0);
 }
 
-uint8_t is_printable_str(uint8_t* text, ssize_t len) {
-    for (ssize_t i = 0; i < len; i++) {
+uint8_t is_printable_str(uint8_t* text, size_t len) {
+    for (size_t i = 0; i < len; i++) {
         if (!is_printable_chr(text[i])) {
             return 0;
         }
@@ -236,7 +236,7 @@ uint8_t is_printable_chr(uint8_t c) {
     return 0;
 }
 
-uint8_t decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
+uint8_t decrypt_64(const uint8_t *source, size_t source_len, uint8_t *dest,
                    uint64_t initial, uint64_t taps) {
     // Shift register state
     uint64_t reg = initial;
@@ -277,7 +277,7 @@ exit:
     return ret;
 }
 
-void decrypt_8(const uint8_t *source, ssize_t source_len, uint8_t *dest,
+void decrypt_8(const uint8_t *source, size_t source_len, uint8_t *dest,
                uint8_t initial, uint8_t taps) {
     // Shift register state
     uint8_t reg = initial;
