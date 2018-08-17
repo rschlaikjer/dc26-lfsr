@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <locale.h>
 
 #define USE_POPCNT
 
@@ -64,6 +65,9 @@ const uint8_t crypt_lfsr_64[] = {
 };
 
 int main() {
+    // Comma-delimited large numbers
+    setlocale(LC_NUMERIC, "");
+
     fprintf(stderr, "Running in %d-bit mode\n", BIT_SIZE);
 
 #if BIT_SIZE == 64
@@ -139,11 +143,18 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         const double seconds_remaining = seconds_per_percent * 100;
         const time_t minutes_remaining = ((time_t) (seconds_remaining / 60)) % 60;
         const time_t hours_remaining = (seconds_remaining / 3600);
+        const size_t ops_per_sec = (
+            seconds_elapsed ?
+            (taps_checked / 1000) / seconds_elapsed : 0
+        );
         fprintf(
             stderr,
-            "Test progress: " REG_FMT "/" REG_FMT " (%.1f%%); Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
+            "" REG_FMT "/" REG_FMT " (%.1f%%); "
+            "%'lu kOps/sec; "
+            "Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
             taps_checked, lfsr_max,
             percent_complete,
+            ops_per_sec,
             hours_elapsed, minutes_elapsed,
             hours_remaining, minutes_remaining
         );
