@@ -27,8 +27,8 @@ void *bruteforce_64_worker(void *args_v);
 void decrypt_8(const uint8_t *source, ssize_t source_len, uint8_t *dest,
                uint8_t initial, uint8_t taps);
 
-void decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
-                uint64_t initial, uint64_t taps);
+uint8_t decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
+                   uint64_t initial, uint64_t taps);
 
 static inline void shift_8(uint8_t *reg, uint8_t taps);
 static inline void shift_64(uint64_t *reg, uint64_t taps);
@@ -90,7 +90,7 @@ void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t in
         fprintf(stderr, "%02x", input[i]);
     }
     fprintf(stderr, "\nStarting register value: 0x%016lx\n", initial_value);
-    fprintf(stderr, "Worker thread count: %d\n", cpu_count);
+    fprintf(stderr, "Worker thread count: %ld\n", cpu_count);
 
     // Spawn a worker thread for each core, partitioning the search space
     for (long i = 0; i < cpu_count; i++) {
@@ -137,7 +137,7 @@ void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t in
         const time_t hours_remaining = (seconds_remaining / 3600);
         fprintf(
             stderr,
-            "Test progress: %016lx/%016lx (%.1f%); Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
+            "Test progress: %016lx/%016lx (%.1f%%); Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
             taps_checked, 0xFFFFFFFFFFFFFFFF,
             percent_complete,
             hours_elapsed, minutes_elapsed,
@@ -146,7 +146,7 @@ void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t in
 
         // If we finished, break out
         if (all_workers_done) {
-            fprintf(stderr, "All workers done!\n");
+            fprintf(stderr, "\nAll workers done!\n");
             break;
         }
 
@@ -164,7 +164,7 @@ void bruteforce_64_parallel(const uint8_t *input, ssize_t input_len, uint64_t in
 
 void bruteforce_8(const uint8_t *input, ssize_t input_len) {
     uint8_t taps = 0;
-    char output[input_len + 1];
+    uint8_t output[input_len + 1];
     do {
         decrypt_8(input, input_len, output, 0x42, taps);
         if (is_printable_str(output, input_len + 1)) {
@@ -179,16 +179,17 @@ void *bruteforce_64_worker(void *args_v) {
 
     uint64_t taps = args->start_taps;
     const uint64_t initial_state = args->initial_value;
-    char output[args->input_len + 1];
+    uint8_t output[args->input_len + 1];
     do {
-        decrypt_64(args->input, args->input_len, output, initial_state, taps);
-        if (is_printable_str(output, args->input_len + 1)) {
-            fprintf(stderr, "Tap config 0x%0lx: %s\n", taps, output);
+        if (decrypt_64(args->input, args->input_len, output, initial_state, taps)) {
+        // if (is_printable_str(output, args->input_len + 1)) {
+            fprintf(stderr, "\nTap config 0x%0lx: %s\n", taps, output);
         }
         taps++;
         args->taps_checked++;
     } while (taps < args->end_taps);
     args->thread_done = 1;
+    return NULL;
 }
 
 void bruteforce_64(const uint8_t *input, ssize_t input_len) {
@@ -196,7 +197,7 @@ void bruteforce_64(const uint8_t *input, ssize_t input_len) {
     // const uint64_t initial_state = 0x8000000000000000;
     // const uint64_t initial_state = 0x0000000000000080;
     const uint64_t initial_state = 0x8080808080808080;
-    char output[input_len + 1];
+    uint8_t output[input_len + 1];
     do {
         decrypt_64(input, input_len, output, initial_state, taps);
         if (is_printable_str(output, input_len + 1)) {
@@ -206,7 +207,7 @@ void bruteforce_64(const uint8_t *input, ssize_t input_len) {
         if (taps % 100000 == 0) {
             fprintf(
                 stderr,
-                "Test progress: %0lx/%0lx (%.1f%)\r",
+                "Test progress: %0lx/%0lx (%.1f%%)\r",
                 taps, 0xFFFFFFFFFFFFFFFF,
                 ((((double) taps) * 100) / ((double) 0xFFFFFFFFFFFFFFFF))
             );
@@ -235,14 +236,17 @@ uint8_t is_printable_chr(uint8_t c) {
     return 0;
 }
 
-void decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
-               uint64_t initial, uint64_t taps) {
+uint8_t decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
+                   uint64_t initial, uint64_t taps) {
     // Shift register state
     uint64_t reg = initial;
 
     // Clear the destination array
     // Extra byte for null terminator
     memset(dest, 0x0, source_len + 1);
+
+    // Return value - 1 if string is printable
+    uint8_t ret = 1;
 
     for (int by = 0; by < source_len; by++) {
         for (int bi = 0; bi < 64; bi++) {
@@ -261,11 +265,18 @@ void decrypt_64(const uint8_t *source, ssize_t source_len, uint8_t *dest,
             // Stick that bit back into the output
             dest[by] |= (xor_result << offset);
         }
+        // Bail fast if the string starts looking bad
+        if (!is_printable_chr(dest[by])) {
+            ret = 0;
+            goto exit;
+        }
     }
-
+exit:
     // Terminate the string
     dest[source_len] = 0x0;
+    return ret;
 }
+
 void decrypt_8(const uint8_t *source, ssize_t source_len, uint8_t *dest,
                uint8_t initial, uint8_t taps) {
     // Shift register state
@@ -298,14 +309,12 @@ void decrypt_8(const uint8_t *source, ssize_t source_len, uint8_t *dest,
 }
 
 static inline void shift_64(uint64_t *reg, uint64_t taps) {
-    uint64_t bits = *reg & taps;
     uint64_t xor = xor_64(*reg, taps);
     *reg = *reg >> 1;
     *reg |= xor << 63;
 }
 
 static inline void shift_8(uint8_t *reg, uint8_t taps) {
-    uint8_t bits = *reg & taps;
     uint8_t xor = xor_8(*reg, taps);
     *reg = *reg >> 1;
     *reg |= xor << 7;
