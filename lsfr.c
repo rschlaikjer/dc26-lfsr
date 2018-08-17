@@ -322,26 +322,24 @@ static inline void shift_8(uint8_t *reg, uint8_t taps) {
 
 static inline uint64_t xor_64(uint64_t reg, uint64_t taps) {
     uint8_t state = 0;
-    uint8_t test = 1;
-    for (int i = 0; i < 64; i++) {
-        if (test & taps) {
+    for (int i = 0; i < 64 && taps; i++) {
+        if (0x1 & taps) {
             state = state ^ (reg & 1);
         }
         reg = reg >> 1;
-        test = test << 1;
+        taps = taps >> 1;
     }
     return state;
 }
 
 static inline uint8_t xor_8(uint8_t reg, uint8_t taps) {
     uint8_t state = 0;
-    uint8_t test = 1;
-    for (int i = 0; i < 8; i++) {
-        if (test & taps) {
+    for (int i = 0; i < 8 && taps; i++) {
+        if (0x1 & taps) {
             state = state ^ (reg & 1);
         }
         reg = reg >> 1;
-        test = test << 1;
+        taps = taps >> 1;
     }
     return state;
 }
