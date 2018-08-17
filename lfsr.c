@@ -219,24 +219,31 @@ uint8_t decrypt(const uint8_t *source, size_t source_len, uint8_t *dest,
 
     for (size_t by = 0; by < source_len; by++) {
         lfsr_reg test = ((lfsr_reg) 1) << 7;
-        for (uint8_t bi = 0; bi < 8; bi++) {
+        // for (uint8_t bi = 0; bi < 8; bi++) {
+        uint8_t offset = 8;
+        do {
             // Shift
             shift(&reg, taps);
 
             // Start at the high bit (all ops MSBfirst here)
-            const lfsr_reg offset = 7 - bi;
+            offset --;
+            // const lfsr_reg offset = 7 - bi;
 
             // Get the MSB of the shift register state
             const lfsr_reg reg_xor_bit = (reg & ((lfsr_reg ) 1 << (BIT_SIZE - 1))) >> (BIT_SIZE - 1);
+
             // Get the current bit of the ciphertext
             const lfsr_reg data_xor_bit = (source[by] & test) >> offset;
+
             // Xor them
             const lfsr_reg xor_result = reg_xor_bit ^ data_xor_bit;
+
             // Stick that bit back into the output
             dest[by] |= (xor_result << offset);
 
             test = test >> 1;
-        }
+        } while (offset > 0);
+
         // Bail fast if the string starts looking bad
         if (!is_printable_chr(dest[by])) {
             ret = 0;
