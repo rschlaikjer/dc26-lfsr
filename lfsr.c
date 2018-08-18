@@ -51,7 +51,8 @@ uint8_t is_printable_chr(uint8_t c);
 
 void bruteforce(const uint8_t *input, size_t input_len);
 
-void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initial_value);
+void bruteforce_parallel(const uint8_t *input, size_t input_len,
+                         lfsr_reg initial_value);
 void *bruteforce_worker(void *args_v);
 
 uint8_t decrypt(const uint8_t *source, size_t source_len, uint8_t *dest,
@@ -91,7 +92,8 @@ int main() {
 #endif
 }
 
-void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initial_value) {
+void bruteforce_parallel(const uint8_t *input, size_t input_len,
+                         lfsr_reg initial_value) {
     // Get the CPU count
     const long cpu_count = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -122,7 +124,8 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         thread_state[i]->end_taps = end_taps;
         thread_state[i]->taps_checked = 0;
         thread_state[i]->thread_done = 0;
-        if(pthread_create(&threads[i], NULL, bruteforce_worker, thread_state[i])) {
+        if(pthread_create(&threads[i], NULL,
+                          bruteforce_worker, thread_state[i])) {
             fprintf(stderr, "Error creating thread\n");
             return;
         }
@@ -150,10 +153,14 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         const time_t minutes_elapsed = (seconds_elapsed / 60) % 60;
         const time_t hours_elapsed = seconds_elapsed / 3600;
 
-        const double percent_complete = ((((double) taps_checked) * 100) / ((double) lfsr_max));
+        const double percent_complete = (
+            ((((double) taps_checked) * 100) / ((double) lfsr_max))
+        );
         const double seconds_per_percent = seconds_elapsed / percent_complete;
         const double seconds_remaining = seconds_per_percent * 100;
-        const time_t minutes_remaining = ((time_t) (seconds_remaining / 60)) % 60;
+        const time_t minutes_remaining = (
+            ((time_t) (seconds_remaining / 60)) % 60
+        );
         const time_t hours_remaining = (seconds_remaining / 3600);
         const size_t ops_per_sec = (
             seconds_elapsed ?
@@ -200,7 +207,8 @@ void *bruteforce_worker(void *args_v) {
     const lfsr_reg initial_state = args->initial_value;
     uint8_t output[args->input_len + 1];
     do {
-        if (decrypt(args->input, args->input_len, output, initial_state, taps)) {
+        if (decrypt(args->input, args->input_len,
+                    output, initial_state, taps)) {
             fprintf(stderr,
                 "Tap config "
                 ANSI_COLOR_CYAN REG_FMT ANSI_COLOR_RESET ": "
@@ -263,7 +271,9 @@ uint8_t decrypt(const uint8_t *source, size_t source_len, uint8_t *dest,
             // const lfsr_reg offset = 7 - bi;
 
             // Get the MSB of the shift register state
-            const lfsr_reg reg_xor_bit = (reg & ((lfsr_reg ) 1 << (BIT_SIZE - 1))) >> (BIT_SIZE - 1);
+            const lfsr_reg reg_xor_bit = (
+                (reg & ((lfsr_reg ) 1 << (BIT_SIZE - 1))) >> (BIT_SIZE - 1)
+            );
 
             // Get the current bit of the ciphertext
             const lfsr_reg data_xor_bit = (source[by] & test) >> offset;
