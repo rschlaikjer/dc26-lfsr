@@ -157,7 +157,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         const time_t hours_remaining = (seconds_remaining / 3600);
         const size_t ops_per_sec = (
             seconds_elapsed ?
-            (taps_checked / 1000) / seconds_elapsed : 0
+            (taps_checked / 1000000) / seconds_elapsed : 0
         );
         fprintf(
             stderr,
@@ -166,7 +166,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
             ANSI_COLOR_RESET
             " (" ANSI_COLOR_CYAN "%.1f%%" ANSI_COLOR_RESET "); "
             ANSI_COLOR_GREEN
-            "%'lu " ANSI_COLOR_RESET "kOps/sec; "
+            "%'lu " ANSI_COLOR_RESET "MOps/sec; "
             "Elapsed: %02lu:%02lu Remaining: %02lu:%02lu\r",
             taps_checked, lfsr_max,
             percent_complete,
