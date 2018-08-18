@@ -148,7 +148,7 @@ void bruteforce_parallel(const uint8_t *input, size_t input_len, lfsr_reg initia
         clock_gettime(CLOCK_MONOTONIC, &now);
         const time_t seconds_elapsed = now.tv_sec - start_time.tv_sec;
         const time_t minutes_elapsed = (seconds_elapsed / 60) % 60;
-        const time_t hours_elapsed  = minutes_elapsed / 60;
+        const time_t hours_elapsed = seconds_elapsed / 3600;
 
         const double percent_complete = ((((double) taps_checked) * 100) / ((double) lfsr_max));
         const double seconds_per_percent = seconds_elapsed / percent_complete;
